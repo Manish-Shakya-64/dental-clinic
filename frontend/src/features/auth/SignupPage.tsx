@@ -1,7 +1,6 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
 import { useAppDispatch } from "@/app/hooks";
 import { setCredentials } from "@/features/auth/authSlice";
 import { useRegisterMutation, useLoginMutation } from "@/features/auth/authApi";
@@ -11,6 +10,8 @@ import { Field, Input } from "@/components/ui/Input";
 import { PasswordInput } from "@/components/ui/PasswordInput";
 import { NameFields } from "@/components/ui/NameFields";
 import { GenderSelect } from "@/components/ui/GenderSelect";
+import { AuthError, AuthHeading, AuthLayout } from "@/features/auth/AuthLayout";
+import registerImage from "@/assets/register.webp";
 import { cn } from "@/lib/cn";
 import { roleHomePath } from "@/lib/roleHomePath";
 import { collectErrors, confirmPasswordError, emailError, passwordError, phoneError, requiredError } from "@/lib/validators";
@@ -131,17 +132,16 @@ export function SignupPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-page px-4 py-10">
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="w-full max-w-sm rounded-3xl bg-surface p-9 shadow-[20px_20px_50px_rgba(163,184,204,0.35)]"
-      >
-        <div className="font-heading text-center text-xl font-bold text-ink">Create your account</div>
-        <div className="mt-1 text-center text-sm text-faint">Book and manage appointments online</div>
+    <AuthLayout
+      image={registerImage}
+      imageAlt="Dental model and instruments at Bright Smile Dental Clinic"
+      headline="Your smile, looked after"
+      tagline="Create an account to book visits, see your history, and get reminders before every appointment."
+      points={["Book online in under a minute", "Reschedule or cancel anytime", "Your records, private and secure"]}
+    >
+      <AuthHeading title="Create your account" subtitle="Book and manage your appointments online." />
 
-        <div className="mt-6 flex items-center gap-2.5">
+      <div className="mb-7 flex items-center gap-2.5">
           {STEP_LABELS.map((label, i) => (
             <div key={label} className="flex flex-1 items-center gap-2.5">
               <div
@@ -158,8 +158,8 @@ export function SignupPage() {
           ))}
         </div>
 
-        {step === 0 ? (
-          <div className="mt-6 flex flex-col gap-3.5">
+      {step === 0 ? (
+        <div className="flex flex-col gap-3.5">
             <NameFields
               value={form}
               onChange={(next) => {
@@ -184,8 +184,8 @@ export function SignupPage() {
               Continue
             </Button>
           </div>
-        ) : (
-          <form onSubmit={handleSubmit} noValidate className="mt-6 flex flex-col gap-3.5">
+      ) : (
+        <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-3.5">
             <Field label="Email" error={errors.email}>
               <Input
                 type="email"
@@ -214,7 +214,7 @@ export function SignupPage() {
               />
             </Field>
 
-            {submitError && <div className="rounded-xl bg-coral-alt/10 px-3.5 py-2.5 text-xs font-semibold text-coral-alt">{submitError}</div>}
+            {submitError && <AuthError message={submitError} />}
 
             <div className="mt-2 flex gap-2.5">
               <Button type="button" variant="ghost" onClick={() => setStep(0)}>
@@ -227,13 +227,12 @@ export function SignupPage() {
           </form>
         )}
 
-        <div className="mt-5 text-center text-[13px] text-faint">
-          Already have an account?{" "}
-          <Link to="/login" className="font-bold text-primary">
-            Log in
-          </Link>
-        </div>
-      </motion.div>
-    </div>
+      <div className="mt-7 text-center text-[13.5px] text-faint">
+        Already have an account?{" "}
+        <Link to="/login" className="font-bold text-primary">
+          Log in
+        </Link>
+      </div>
+    </AuthLayout>
   );
 }

@@ -49,6 +49,14 @@
   color-scheme: light;
 }
 
+html {
+  /* Always reserve room for the scrollbar. On platforms with classic (space-taking) scrollbars,
+     moving between a view that scrolls and one that doesn't changes the viewport width, which
+     resizes anything sized as a fraction of it — the split auth layout's artwork panel visibly
+     jumped width between the two signup steps for exactly this reason. */
+  scrollbar-gutter: stable;
+}
+
 body {
   background: var(--color-page);
   font-family: var(--font-body);
