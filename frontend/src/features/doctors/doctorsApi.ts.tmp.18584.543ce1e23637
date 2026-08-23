@@ -1,0 +1,25 @@
+import { apiSlice } from "@/api/apiSlice";
+import type { ApiEnvelope, Gender, PersonName } from "@/types/api";
+
+export interface DoctorSummary extends PersonName {
+  _id: string;
+  gender: Gender;
+  specialties: string[];
+  profile_image?: string | null;
+}
+
+export const doctorsApi = apiSlice.injectEndpoints({
+  endpoints: (builder) => ({
+    listDoctors: builder.query<DoctorSummary[], void>({
+      query: () => "/doctors",
+      transformResponse: (response: ApiEnvelope<DoctorSummary[]>) => response.data,
+    }),
+    // Public — same idea as GET /profile/image, but for any active doctor rather than "me", since
+    // the marketing site shows doctor photos to visitors who aren't logged in at all.
+    getDoctorImage: builder.query<Blob, string>({
+      query: (id) => ({ url: `/doctors/${id}/image`, responseHandler: (response) => response.blob() }),
+    }),
+  }),
+});
+
+export const { useListDoctorsQuery, useLazyGetDoctorImageQuery } = doctorsApi;

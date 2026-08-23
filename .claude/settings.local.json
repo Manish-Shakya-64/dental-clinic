@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(command -v pandoc)",
+      "Bash(command -v python)",
+      "Bash(command -v python3)",
+      "Bash(npm run *)",
+      "Bash(npm test *)",
+      "Bash(npm create *)",
+      "Bash(npm install *)",
+      "Bash(disown)",
+      "Bash(curl -s http://localhost:4000/api/health)",
+      "Bash(npx playwright *)",
+      "Bash(pkill -f \"smoke-debug\")",
+      "Bash(node .smoke-admin2.mjs)",
+      "Bash(npm uninstall *)"
+    ]
+  }
+}

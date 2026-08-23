@@ -1,0 +1,69 @@
+@import "tailwindcss";
+@import "@fontsource/poppins/latin-500.css";
+@import "@fontsource/poppins/latin-600.css";
+@import "@fontsource/poppins/latin-700.css";
+@import "@fontsource/poppins/latin-800.css";
+@import "@fontsource/nunito/latin-400.css";
+@import "@fontsource/nunito/latin-500.css";
+@import "@fontsource/nunito/latin-600.css";
+@import "@fontsource/nunito/latin-700.css";
+@import "@fontsource/nunito/latin-800.css";
+
+@theme {
+  --font-heading: "Poppins", sans-serif;
+  --font-body: "Nunito", sans-serif;
+
+  --color-page: #dce5ee;
+  --color-panel: #eef4f9;
+  --color-surface: #ffffff;
+  --color-surface-alt: #f5f9fc;
+  --color-border: #eef2f6;
+
+  --color-ink: #243b53;
+  --color-ink-soft: #4a6178;
+  --color-muted: #6b8098;
+  --color-faint: #7c93a8;
+  --color-placeholder: #9fb2c3;
+
+  --color-primary: #3d7dbf;
+  --color-primary-dark: #33689e;
+  --color-primary-tint: #dceaf7;
+  --color-chart-bar: #8fb6dc;
+  --color-accent: #5b6ee1;
+  --color-accent-dark: #4c5cd1;
+  --color-teal: #5dc1b9;
+  --color-teal-tint: #e3f4ef;
+  --color-amber: #f5c177;
+  --color-amber-tint: #fdf3e2;
+  --color-amber-ink: #8a6212;
+  --color-coral: #e8836b;
+  --color-coral-alt: #d9765f;
+
+  --color-marketing-bg: #f7fafc;
+}
+
+:root {
+  /* This app is light-themed only — without this, some Chromium-based browsers (e.g. Brave with
+     "Simplify page"/auto-dark enabled) repaint custom-colored controls like toggle switches with
+     OS-native dark-mode styling, ignoring the authored colors entirely. */
+  color-scheme: light;
+}
+
+body {
+  background: var(--color-page);
+  font-family: var(--font-body);
+  color: var(--color-ink-soft);
+}
+
+.font-heading {
+  font-family: var(--font-heading);
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
