@@ -40,7 +40,7 @@ export function WaitlistPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div>
       <div className="font-heading mb-5 text-[22px] font-bold text-ink">Waitlist</div>
 
       {isLoading && <SkeletonRows count={4} />}

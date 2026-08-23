@@ -155,7 +155,12 @@ export function AppShell({ navItems, title, children }: { navItems: NavItem[]; t
             </button>
           </div>
         </header>
-        <main className="min-w-0 flex-1 px-4 pt-6 pb-24 sm:px-6 md:px-8 md:pb-10">{children}</main>
+        {/* Pages fill the available width rather than pinning themselves to a narrow centred
+          * column; the cap only kicks in on ultra-wide monitors, where full-bleed content would
+          * stretch rows past a comfortable reading length. */}
+        <main className="min-w-0 flex-1 px-4 pt-6 pb-24 sm:px-6 md:px-8 md:pb-10">
+          <div className="mx-auto w-full max-w-[1440px]">{children}</div>
+        </main>
         <BottomTabBar items={navItems} />
       </div>
 

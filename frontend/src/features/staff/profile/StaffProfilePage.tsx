@@ -143,17 +143,20 @@ export function StaffProfilePage() {
 
   if (isLoading || !form) {
     return (
-      <div className="mx-auto max-w-xl space-y-4">
-        <Skeleton className="h-24 rounded-2xl" />
+      <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)]">
+        <Skeleton className="h-40 rounded-2xl" />
         <Skeleton className="h-64 rounded-2xl" />
       </div>
     );
   }
 
   return (
-    <FadeIn className="mx-auto max-w-xl">
-      <Card className="mb-5">
-        <div className="flex items-center gap-5">
+    <FadeIn>
+      {/* Photo panel beside the details rather than stacked above them — a full-width strip holding
+        * one avatar and two buttons is mostly empty space. */}
+      <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)]">
+      <Card>
+        <div className="flex items-center gap-5 lg:flex-col lg:items-start">
           <Avatar hasImage={!!profile?.profile_image} />
           <div>
             <div className="flex gap-2.5">
@@ -191,11 +194,14 @@ export function StaffProfilePage() {
             <Input invalid={!!errors.phone} value={form.phone} onChange={(e) => setField("phone", e.target.value)} />
           </Field>
         </div>
-      </Card>
 
-      <Button className="mt-6" loading={saving} onClick={handleSave}>
-        Save changes
-      </Button>
+        <div className="mt-6 flex justify-end">
+          <Button loading={saving} onClick={handleSave}>
+            Save changes
+          </Button>
+        </div>
+      </Card>
+      </div>
     </FadeIn>
   );
 }

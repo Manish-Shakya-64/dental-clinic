@@ -53,10 +53,15 @@ export function HomePage() {
 
   if (isLoading) {
     return (
-      <div className="mx-auto max-w-3xl space-y-4">
-        <Skeleton className="h-32 rounded-2xl" />
-        <Skeleton className="h-20 rounded-2xl" />
-        <Skeleton className="h-40 rounded-2xl" />
+      <div className="space-y-4">
+        <Skeleton className="h-10 w-56" />
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+          <div className="space-y-4">
+            <Skeleton className="h-44 rounded-2xl" />
+            <Skeleton className="h-20 rounded-2xl" />
+          </div>
+          <Skeleton className="h-56 rounded-2xl" />
+        </div>
       </div>
     );
   }
@@ -66,7 +71,7 @@ export function HomePage() {
   }
 
   return (
-    <FadeIn className="mx-auto max-w-3xl space-y-5">
+    <FadeIn className="space-y-5">
       <div>
         <div className="text-[13px] font-semibold text-faint">{greeting()}</div>
         <div className="font-heading mt-0.5 text-[22px] font-bold text-ink">
@@ -74,6 +79,10 @@ export function HomePage() {
         </div>
       </div>
 
+      {/* What's next vs. what's been — two things you glance at separately, so on a wide screen
+        * they sit side by side instead of pushing history below the fold. */}
+      <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-2">
+        <div className="space-y-5">
       {next ? (
         <div className="rounded-[22px] bg-gradient-to-br from-primary to-primary-dark p-6 text-white shadow-[10px_10px_24px_rgba(61,125,191,0.28)]">
           <div className="flex items-center justify-between">
@@ -128,6 +137,7 @@ export function HomePage() {
           </div>
         </div>
       )}
+        </div>
 
       <div>
         <div className="mb-2.5 flex items-center justify-between">
@@ -163,6 +173,7 @@ export function HomePage() {
             })}
           </StaggerList>
         )}
+      </div>
       </div>
     </FadeIn>
   );

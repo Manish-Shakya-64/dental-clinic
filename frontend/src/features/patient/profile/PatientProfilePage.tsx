@@ -145,7 +145,7 @@ export function PatientProfilePage() {
 
   if (isLoading || !form || !data) {
     return (
-      <div className="mx-auto max-w-xl space-y-4">
+      <div className="mx-auto max-w-4xl space-y-4">
         <Skeleton className="h-24 rounded-2xl" />
         <Skeleton className="h-64 rounded-2xl" />
       </div>
@@ -155,7 +155,7 @@ export function PatientProfilePage() {
   const patient = data.profile as Patient;
 
   return (
-    <FadeIn className="mx-auto max-w-xl">
+    <FadeIn className="mx-auto max-w-4xl">
       <Card className="mb-5">
         <div className="flex items-center gap-5">
           <Avatar hasImage={!!patient.profile_image} />

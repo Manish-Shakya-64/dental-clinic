@@ -88,7 +88,7 @@ export function CheckoutPage() {
 
   if (isLoading) {
     return (
-      <div className="mx-auto max-w-xl space-y-4">
+      <div className="space-y-4">
         <Skeleton className="h-6 w-40" />
         <Skeleton className="h-24 rounded-2xl" />
         <Skeleton className="h-40 rounded-2xl" />
@@ -103,25 +103,40 @@ export function CheckoutPage() {
   const style = statusStyle(appointment.status);
 
   return (
-    <FadeIn className="mx-auto max-w-xl">
+    <FadeIn>
       <button onClick={() => navigate(-1)} className="mb-4 text-[13px] font-bold text-faint hover:text-ink-soft">
         ← Back
       </button>
 
-      <Card className="mb-5">
-        <div className="flex items-start justify-between">
-          <div>
-            <div className="font-heading text-[17px] font-bold text-ink">{fullName(appointment.patient)}</div>
-            <div className="mt-1 text-[13px] text-faint">
-              {appointment.reason.label} · {doctorName(appointment.practitioner)} · {formatDate(appointment.start_time)} · {formatTime(appointment.start_time)}
-            </div>
+      {/* Who the visit is for on the left, the one action it currently needs on the right. */}
+      <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-2">
+      <Card>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <div className="text-[11.5px] font-bold tracking-wide text-placeholder uppercase">{appointment.appointment_code}</div>
+            <div className="font-heading mt-1.5 text-[17px] font-bold text-ink">{fullName(appointment.patient)}</div>
           </div>
           <Pill bg={style.bg} color="#fff">
             {style.label}
           </Pill>
         </div>
+
+        <div className="mt-4 space-y-2.5 border-t border-border pt-4 text-[13.5px]">
+          {[
+            ["Treatment", appointment.reason.label],
+            ["Dentist", doctorName(appointment.practitioner)],
+            ["Date", formatDate(appointment.start_time)],
+            ["Time", formatTime(appointment.start_time)],
+          ].map(([label, value]) => (
+            <div key={label} className="flex gap-4">
+              <div className="w-24 shrink-0 font-bold text-placeholder">{label}</div>
+              <div className="min-w-0 text-ink">{value}</div>
+            </div>
+          ))}
+        </div>
       </Card>
 
+      <div className="space-y-4">
       {CHECK_INABLE.has(appointment.status) && (
         <Button variant="amber" fullWidth loading={checkingIn} onClick={handleCheckIn}>
           Mark as Waiting
@@ -190,6 +205,8 @@ export function CheckoutPage() {
           )}
         </Card>
       )}
+      </div>
+      </div>
     </FadeIn>
   );
 }

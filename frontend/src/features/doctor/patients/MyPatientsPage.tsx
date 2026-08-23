@@ -55,12 +55,12 @@ export function MyPatientsPage() {
       )}
 
       {!isLoading && !isError && filtered.length > 0 && (
-        <StaggerList className="flex flex-col gap-2.5">
+        <StaggerList className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
           {filtered.map((p) => (
             <StaggerItem key={p.patientId}>
               <button
                 onClick={() => navigate(`/doctor/consultation/${p.lastVisit._id}`)}
-                className="flex w-full items-center justify-between rounded-2xl bg-surface px-5 py-4 text-left shadow-[4px_4px_12px_rgba(163,184,204,0.15)] transition-transform hover:-translate-y-0.5"
+                className="flex h-full w-full items-center justify-between gap-3 rounded-2xl bg-surface px-5 py-4 text-left shadow-[4px_4px_12px_rgba(163,184,204,0.15)] transition-transform hover:-translate-y-0.5"
               >
                 <div>
                   <div className="text-sm font-bold text-ink">{p.name}</div>

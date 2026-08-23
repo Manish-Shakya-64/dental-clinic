@@ -79,7 +79,7 @@ export function BookAppointmentPage() {
   const canContinue = [!!treatmentId, practitionerId !== undefined, !!selectedSlot, true][step];
 
   return (
-    <FadeIn className="mx-auto max-w-xl">
+    <FadeIn className="mx-auto max-w-4xl">
       <div className="mb-5 flex items-center gap-2.5">
         {STEP_LABELS.map((_, i) => (
           <div key={i} className={cn("h-1.5 flex-1 rounded-full", i <= step ? "bg-primary" : "bg-page")} />
@@ -137,7 +137,7 @@ export function BookAppointmentPage() {
           {doctorsLoading ? (
             <Skeleton className="h-40 rounded-2xl" />
           ) : (
-            <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+            <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4">
               {doctors?.map((d) => (
                 <button
                   key={d._id}
@@ -184,7 +184,7 @@ export function BookAppointmentPage() {
           ) : sortedSlots.length === 0 ? (
             <div className="rounded-2xl bg-surface px-5 py-8 text-center text-sm text-faint">No open times this day — try another date.</div>
           ) : practitionerId ? (
-            <div className="grid grid-cols-3 gap-2.5">
+            <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-4 lg:grid-cols-6">
               {sortedSlots.map((slot) => (
                 <button
                   key={slot._id}
