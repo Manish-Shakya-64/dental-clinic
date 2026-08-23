@@ -5,6 +5,8 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { SkeletonRows } from "@/components/ui/Skeleton";
 import { StaggerItem, StaggerList } from "@/components/ui/FadeIn";
+import { TableAction } from "@/components/ui/TableAction";
+import { Pencil } from "lucide-react";
 import { TreatmentFormModal } from "@/features/admin/treatments/TreatmentFormModal";
 import type { Treatment } from "@/types/api";
 
@@ -43,7 +45,7 @@ export function TreatmentsPage() {
               <div>Duration</div>
               <div>Buffer</div>
               <div>Price</div>
-              <div />
+              <div>Actions</div>
             </div>
             <StaggerList>
               {data.map((t, i) => (
@@ -53,9 +55,9 @@ export function TreatmentsPage() {
                     <div className="text-muted">{t.default_duration_mins} min</div>
                     <div className="text-muted">{t.buffer_after_mins} min</div>
                     <div className="font-bold text-ink">{currency.format(t.price)}</div>
-                    <button onClick={() => openEdit(t)} className="justify-self-start text-primary hover:text-primary-dark" title="Edit">
-                      ✎
-                    </button>
+                    <div className="justify-self-start">
+                      <TableAction icon={Pencil} label="Edit treatment" onClick={() => openEdit(t)} />
+                    </div>
                   </div>
                 </StaggerItem>
               ))}
