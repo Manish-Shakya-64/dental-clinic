@@ -172,7 +172,7 @@ export function ProfilePage() {
 
   return (
     <FadeIn>
-      <Card className="mb-6 max-w-2xl">
+      <Card className="mb-6">
         <div className="flex items-center gap-5">
           <Avatar hasImage={!!profile?.profile_image} />
           <div>

@@ -57,10 +57,23 @@ export function AddSlotModal({ open, onClose, doctors, rooms, defaultDoctorId, d
     }
   }
 
-  const canSave = practitionerId && roomId && start && end && fromDatetimeLocal(end) > fromDatetimeLocal(start);
+  // Mirrors the server's window rules (slotService) so the admin sees the problem before saving
+  // rather than after a round-trip.
+  const rangeError = (() => {
+    if (!start || !end) return undefined;
+    const from = fromDatetimeLocal(start);
+    const to = fromDatetimeLocal(end);
+    if (to <= from) return "End must be after start";
+    const minutes = (to.getTime() - from.getTime()) / 60_000;
+    if (minutes < 5) return "A slot must be at least 5 minutes";
+    if (minutes > 24 * 60) return "A slot can't be longer than 24 hours";
+    return undefined;
+  })();
+
+  const canSave = !!practitionerId && !!roomId && !!start && !!end && !rangeError;
 
   return (
-    <Modal open={open} onClose={onClose} maxWidth={420}>
+    <Modal open={open} onClose={onClose} maxWidth={520}>
       <div className="font-heading mb-4 text-[17px] font-bold text-ink">Add slot</div>
 
       <Field label="Dentist" className="mb-3">
@@ -91,12 +104,15 @@ export function AddSlotModal({ open, onClose, doctors, rooms, defaultDoctorId, d
         </select>
       </Field>
 
-      <div className="mb-3 flex gap-2.5">
-        <Field label="Start" className="flex-1">
-          <Input type="datetime-local" value={start} onChange={(e) => setStart(e.target.value)} />
+      {/* min-w-0 is load-bearing: a datetime-local input reports a wide min-content size, and grid
+        * items default to min-width:auto, so without it the End field overflows the modal instead
+        * of shrinking to its share of the row. */}
+      <div className="mb-3 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+        <Field label="Start" className="min-w-0" error={rangeError}>
+          <Input type="datetime-local" invalid={!!rangeError} value={start} onChange={(e) => setStart(e.target.value)} />
         </Field>
-        <Field label="End" className="flex-1">
-          <Input type="datetime-local" value={end} onChange={(e) => setEnd(e.target.value)} />
+        <Field label="End" className="min-w-0">
+          <Input type="datetime-local" invalid={!!rangeError} value={end} onChange={(e) => setEnd(e.target.value)} />
         </Field>
       </div>
 

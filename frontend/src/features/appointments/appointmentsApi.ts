@@ -8,6 +8,7 @@ interface ListAppointmentsParams {
   practitioner?: string;
   status?: string;
   code?: string;
+  page?: number;
   limit?: number;
 }
 

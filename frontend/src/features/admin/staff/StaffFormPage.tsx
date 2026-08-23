@@ -155,7 +155,7 @@ export function StaffFormPage() {
 
   if (isEditing && (listLoading || !initialized)) {
     return (
-      <div className="mx-auto max-w-3xl space-y-4">
+      <div className="mx-auto max-w-5xl space-y-4">
         <Skeleton className="h-6 w-40" />
         <Skeleton className="h-64 rounded-2xl" />
       </div>
@@ -167,7 +167,7 @@ export function StaffFormPage() {
   }
 
   return (
-    <FadeIn className="mx-auto max-w-3xl">
+    <FadeIn className="mx-auto max-w-5xl">
       <button onClick={() => navigate("/admin/staff")} className="mb-4 text-[13px] font-bold text-faint hover:text-ink-soft">
         ← Back to staff
       </button>

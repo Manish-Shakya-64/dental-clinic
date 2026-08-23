@@ -14,6 +14,8 @@ import { Pagination } from "@/components/ui/Pagination";
 import { SkeletonRows } from "@/components/ui/Skeleton";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { StaggerItem, StaggerList } from "@/components/ui/FadeIn";
+import { TableAction } from "@/components/ui/TableAction";
+import { Pencil, Trash2 } from "lucide-react";
 import { staffRowName } from "@/lib/personName";
 import type { Role, StaffRow } from "@/types/api";
 
@@ -161,14 +163,10 @@ export function StaffPage() {
                             {row.is_active ? "Active" : "Inactive"}
                           </span>
                         </div>
-                        <div className="flex items-center gap-3">
-                          <button onClick={() => navigate(`/admin/staff/${row.id}/edit`)} className="text-primary hover:text-primary-dark" title="Edit">
-                            ✎
-                          </button>
+                        <div className="flex items-center gap-1">
+                          <TableAction icon={Pencil} label="Edit staff member" onClick={() => navigate(`/admin/staff/${row.id}/edit`)} />
                           <ActiveToggle row={row} />
-                          <button onClick={() => setConfirmRemove(row)} className="text-coral-alt hover:text-coral-alt/70" title="Remove">
-                            🗑
-                          </button>
+                          <TableAction icon={Trash2} label="Remove staff member" variant="danger" onClick={() => setConfirmRemove(row)} />
                         </div>
                       </div>
                     </StaggerItem>

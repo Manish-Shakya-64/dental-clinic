@@ -1,12 +1,13 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { motion } from "framer-motion";
 import { useResetPasswordMutation } from "@/features/auth/authApi";
 import { getApiErrorMessage } from "@/api/apiSlice";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Input";
 import { PasswordInput } from "@/components/ui/PasswordInput";
+import { AuthError, AuthHeading, AuthLayout } from "@/features/auth/AuthLayout";
+import loginImage from "@/assets/login-page.webp";
 import { confirmPasswordError, passwordError } from "@/lib/validators";
 
 export function ResetPasswordPage() {
@@ -39,23 +40,22 @@ export function ResetPasswordPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-page px-4">
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="w-full max-w-sm rounded-3xl bg-surface p-9 shadow-[20px_20px_50px_rgba(163,184,204,0.35)]"
-      >
-        <div className="font-heading text-center text-xl font-bold text-ink">Set new password</div>
-        <div className="mt-2 text-center text-[13.5px] text-faint">Choose a strong password you haven't used before</div>
+    <AuthLayout
+      image={loginImage}
+      imageAlt="Treatment room at Bright Smile Dental Clinic"
+      headline="Pick a new password"
+      tagline="Choose something strong you haven't used elsewhere — you'll be signed straight back in afterwards."
+      points={["At least 8 characters", "Signs out your other devices", "Takes effect immediately"]}
+    >
+      <AuthHeading title="Set new password" subtitle="Choose a strong password you haven't used before." />
 
-        {!token && (
-          <div className="mt-5 rounded-xl bg-coral-alt/10 px-3.5 py-2.5 text-xs font-semibold text-coral-alt">
-            This link is missing a reset token. Request a new one from the forgot-password page.
-          </div>
-        )}
+      {!token && (
+        <div className="mb-5">
+          <AuthError message="This link is missing a reset token. Request a new one from the forgot-password page." />
+        </div>
+      )}
 
-        <form onSubmit={handleSubmit} noValidate className="mt-7 flex flex-col gap-4">
+      <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
           <Field label="New password" error={fieldErrors.newPassword}>
             <PasswordInput
               autoComplete="new-password"
@@ -81,19 +81,18 @@ export function ResetPasswordPage() {
             />
           </Field>
 
-          {error && <div className="rounded-xl bg-coral-alt/10 px-3.5 py-2.5 text-xs font-semibold text-coral-alt">{error}</div>}
+          {error && <AuthError message={error} />}
 
           <Button type="submit" loading={isLoading} fullWidth disabled={!token}>
             Reset password
           </Button>
         </form>
 
-        <div className="mt-5 text-center">
-          <Link to="/login" className="text-[13px] font-bold text-primary">
-            ← Back to log in
-          </Link>
-        </div>
-      </motion.div>
-    </div>
+      <div className="mt-7 text-center">
+        <Link to="/login" className="text-[13px] font-bold text-primary">
+          ← Back to log in
+        </Link>
+      </div>
+    </AuthLayout>
   );
 }

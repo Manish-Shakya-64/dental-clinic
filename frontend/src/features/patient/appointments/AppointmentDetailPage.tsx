@@ -54,9 +54,12 @@ export function AppointmentDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="mx-auto max-w-lg space-y-4">
+      <div className="space-y-4">
         <Skeleton className="h-6 w-24" />
-        <Skeleton className="h-40 rounded-2xl" />
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <Skeleton className="h-48 rounded-2xl" />
+          <Skeleton className="h-48 rounded-2xl" />
+        </div>
       </div>
     );
   }
@@ -69,13 +72,16 @@ export function AppointmentDetailPage() {
   const isCancelled = appointment.status === "CANCELLED" || appointment.status === "NO_SHOW";
 
   return (
-    <FadeIn className="mx-auto max-w-lg">
+    <FadeIn>
       <button onClick={() => navigate(-1)} className="mb-4 text-[13px] font-bold text-faint hover:text-ink-soft">
         ← Back
       </button>
 
+      {/* The appointment itself on the left, what you can do about it on the right. */}
+      <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
       {isUpcoming ? (
         <>
+          <div className="space-y-4">
           <div className="rounded-[22px] bg-gradient-to-br from-primary to-primary-dark p-6 text-white shadow-[10px_10px_24px_rgba(61,125,191,0.28)]">
             <div className="flex items-center justify-between">
               <div className="text-xs font-bold tracking-wide text-white/85 uppercase">Upcoming</div>
@@ -88,12 +94,14 @@ export function AppointmentDetailPage() {
             <div className="mt-0.5 text-sm text-white/90">with {doctorName(appointment.practitioner)}</div>
           </div>
 
-          <div className="mt-4 rounded-2xl bg-surface px-4 py-3.5 text-[12.5px] text-ink-soft shadow-[4px_4px_12px_rgba(163,184,204,0.15)]">
+          <div className="rounded-2xl bg-surface px-4 py-3.5 text-[12.5px] text-ink-soft shadow-[4px_4px_12px_rgba(163,184,204,0.15)]">
             Show the front desk your appointment code <span className="font-bold text-ink">{appointment.appointment_code}</span> to check in
             when you arrive.
           </div>
+          </div>
 
-          <div className="mt-4 flex gap-2.5">
+          <div className="space-y-4">
+          <div className="flex gap-2.5">
             <Button variant="outline" className="flex-1" onClick={() => setRescheduling(true)}>
               Reschedule
             </Button>
@@ -105,8 +113,9 @@ export function AppointmentDetailPage() {
             </Button>
           </div>
 
-          <div className="mt-5 rounded-2xl bg-amber-tint px-4 py-3.5 text-[12.5px] text-amber-ink">
+          <div className="rounded-2xl bg-amber-tint px-4 py-3.5 text-[12.5px] text-amber-ink">
             Cancelling within 24 hours may incur a fee. You'll be asked to confirm before we cancel.
+          </div>
           </div>
         </>
       ) : (
@@ -123,17 +132,18 @@ export function AppointmentDetailPage() {
             <div className="mt-0.5 text-[13.5px] text-faint">with {doctorName(appointment.practitioner)}</div>
           </Card>
 
+          <div className="space-y-4">
           {!isCancelled && (
-            <>
-              <div className="font-heading mt-6 mb-2.5 text-[15px] font-bold text-ink">Visit summary</div>
+            <div>
+              <div className="font-heading mb-2.5 text-[15px] font-bold text-ink">Visit summary</div>
               <Card className="bg-surface-alt text-[13.5px] leading-relaxed text-ink-soft shadow-none">
                 {appointment.clinical_note?.note_text ?? "No visit summary was recorded for this appointment."}
               </Card>
-            </>
+            </div>
           )}
 
           {bill && (
-            <Card className="mt-4">
+            <Card>
               <div className="mb-2.5 text-[11.5px] font-bold tracking-wide text-placeholder uppercase">Bill · #{bill.bill_number}</div>
               <div className="flex items-center justify-between text-[14.5px] font-bold text-ink">
                 <span>Total</span>
@@ -144,8 +154,10 @@ export function AppointmentDetailPage() {
               </Button>
             </Card>
           )}
+          </div>
         </>
       )}
+      </div>
 
       <RescheduleModal open={rescheduling} onClose={() => setRescheduling(false)} appointment={appointment} />
       <ConfirmModal

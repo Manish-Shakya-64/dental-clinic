@@ -17,6 +17,8 @@ import { StaffFormPage } from "@/features/admin/staff/StaffFormPage";
 import { RoomsPage } from "@/features/admin/rooms/RoomsPage";
 import { SlotsPage } from "@/features/admin/slots/SlotsPage";
 import { TreatmentsPage } from "@/features/admin/treatments/TreatmentsPage";
+import { AdminAppointmentsPage } from "@/features/admin/appointments/AdminAppointmentsPage";
+import { AdminAppointmentDetailPage } from "@/features/admin/appointments/AdminAppointmentDetailPage";
 import { ReceptionistLayout } from "@/features/reception/ReceptionistLayout";
 import { MasterCalendarPage } from "@/features/reception/calendar/MasterCalendarPage";
 import { CheckInPage } from "@/features/reception/checkin/CheckInPage";
@@ -90,6 +92,13 @@ function App() {
             <Route path="staff" element={<StaffPage />} />
             <Route path="staff/new" element={<StaffFormPage />} />
             <Route path="staff/:staffId/edit" element={<StaffFormPage />} />
+            {/* Patient screens are shared with the reception portal — they resolve their own
+              * back/cancel links from the current portal (see usePortalBase). */}
+            <Route path="patients" element={<PatientsPage />} />
+            <Route path="patients/new" element={<PatientFormPage />} />
+            <Route path="patients/:patientId/edit" element={<PatientFormPage />} />
+            <Route path="appointments" element={<AdminAppointmentsPage />} />
+            <Route path="appointments/:appointmentId" element={<AdminAppointmentDetailPage />} />
             <Route path="rooms" element={<RoomsPage />} />
             <Route path="slots" element={<SlotsPage />} />
             <Route path="treatments" element={<TreatmentsPage />} />

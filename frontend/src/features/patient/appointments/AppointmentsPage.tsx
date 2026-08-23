@@ -31,7 +31,7 @@ export function AppointmentsPage() {
   }, [data, tab]);
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div>
       <div className="mb-5 flex items-center justify-between">
         <div className="flex gap-1 rounded-full bg-surface p-1 shadow-[3px_3px_8px_rgba(163,184,204,0.2)]">
           {(["upcoming", "past"] as const).map((t) => (
@@ -55,14 +55,14 @@ export function AppointmentsPage() {
           {filtered.length === 0 ? (
             <Card className="text-center text-sm text-faint">{tab === "upcoming" ? "No upcoming appointments." : "No past visits yet."}</Card>
           ) : (
-            <StaggerList className="flex flex-col gap-2.5">
+            <StaggerList className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
               {filtered.map((appt) => {
                 const style = statusStyle(appt.status);
                 return (
                   <StaggerItem key={appt._id}>
                     <button
                       onClick={() => navigate(`/patient/appointments/${appt._id}`)}
-                      className="flex w-full items-center justify-between rounded-2xl bg-surface px-5 py-4 text-left shadow-[4px_4px_12px_rgba(163,184,204,0.15)]"
+                      className="flex h-full w-full items-center justify-between gap-3 rounded-2xl bg-surface px-5 py-4 text-left shadow-[4px_4px_12px_rgba(163,184,204,0.15)]"
                     >
                       <div>
                         <div className="text-sm font-bold text-ink">{appt.reason.label}</div>
