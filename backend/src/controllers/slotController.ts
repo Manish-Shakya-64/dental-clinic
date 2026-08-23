@@ -1,8 +1,9 @@
 import { Request, Response } from "express";
 import { FilterQuery } from "mongoose";
 import { Slot, ISlot } from "../models/Slot.js";
+import * as slotService from "../services/slotService.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { NotFoundError } from "../utils/apiError.js";
+import { ConflictError, NotFoundError } from "../utils/apiError.js";
 import { logAudit } from "../middleware/auditLogger.js";
 
 /** Not in the spec's endpoint summary table, but needed so patients/staff can browse availability
@@ -29,12 +30,24 @@ export const createSlot = asyncHandler(async (req: Request, res: Response) => {
   const { practitionerId, roomId, startTime, endTime, repeatWeeks } = req.body;
   const occurrences = repeatWeeks ?? 1;
 
+  const windows = Array.from({ length: occurrences }, (_, i) => ({
+    practitionerId,
+    roomId,
+    startTime: new Date(startTime.getTime() + i * WEEK_MS),
+    endTime: new Date(endTime.getTime() + i * WEEK_MS),
+  }));
+
+  // Validate the whole series before writing any of it, so a clash on week 3 can't leave weeks 1–2
+  // behind as a half-created schedule the admin then has to clean up by hand.
+  await slotService.assertReferencesExist(practitionerId, roomId);
+  await slotService.assertBatchIsFree(windows);
+
   const slots = await Slot.create(
-    Array.from({ length: occurrences }, (_, i) => ({
-      practitioner: practitionerId,
-      room: roomId,
-      start_time: new Date(startTime.getTime() + i * WEEK_MS),
-      end_time: new Date(endTime.getTime() + i * WEEK_MS),
+    windows.map((w) => ({
+      practitioner: w.practitionerId,
+      room: w.roomId,
+      start_time: w.startTime,
+      end_time: w.endTime,
       status: "OPEN" as const,
       created_by: req.user!.staffId,
     })),
@@ -57,6 +70,27 @@ export const updateSlot = asyncHandler(async (req: Request, res: Response) => {
   const slot = await Slot.findById(id);
   if (!slot) throw new NotFoundError("Slot not found");
 
+  // The admin UI already disables these controls for a booked slot, but the API is reachable
+  // directly — without this guard a booked slot could be moved or freed out from under the
+  // appointment still pointing at it.
+  if (slot.status === "BOOKED") {
+    throw new ConflictError("This slot is booked by a patient — cancel the appointment before changing it");
+  }
+
+  const nextStart = startTime ?? slot.start_time;
+  const nextEnd = endTime ?? slot.end_time;
+  if (startTime !== undefined || endTime !== undefined) {
+    await slotService.assertSlotWindowIsFree(
+      {
+        practitionerId: slot.practitioner.toString(),
+        roomId: slot.room.toString(),
+        startTime: nextStart,
+        endTime: nextEnd,
+      },
+      id,
+    );
+  }
+
   if (startTime !== undefined) slot.start_time = startTime;
   if (endTime !== undefined) slot.end_time = endTime;
   if (status !== undefined) slot.status = status;
@@ -68,9 +102,14 @@ export const updateSlot = asyncHandler(async (req: Request, res: Response) => {
 
 export const deleteSlot = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const slot = await Slot.findByIdAndDelete(id);
+  const slot = await Slot.findById(id);
   if (!slot) throw new NotFoundError("Slot not found");
 
+  if (slot.status === "BOOKED") {
+    throw new ConflictError("This slot is booked by a patient — cancel the appointment before deleting it");
+  }
+
+  await slot.deleteOne();
   await logAudit({ req, action: "SLOT_DELETED", resourceType: "Slot", resourceId: id, status: "SUCCESS" });
   res.status(204).send();
 });

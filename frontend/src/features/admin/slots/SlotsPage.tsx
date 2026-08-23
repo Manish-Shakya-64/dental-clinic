@@ -64,6 +64,23 @@ export function SlotsPage() {
     }
   }
 
+  /** The toolbar button must always open the *add* form — routing it through openCell meant that
+   *  whenever the week's first cell happened to be taken, "+ Add slot" silently opened the edit
+   *  dialog for that unrelated slot instead. Defaults to the first free cell in the visible week. */
+  function openAdd() {
+    for (const day of days) {
+      for (const time of TIME_ROWS) {
+        if (!slotGrid.has(`${day.toDateString()}|${time}`)) {
+          setAddDefaultStart(dateAtTime(day, time));
+          setAddOpen(true);
+          return;
+        }
+      }
+    }
+    setAddDefaultStart(dateAtTime(days[0], TIME_ROWS[0]));
+    setAddOpen(true);
+  }
+
   const loading = staffLoading || roomsLoading;
 
   if (loading) {
@@ -113,7 +130,7 @@ export function SlotsPage() {
               <div className="text-xs font-semibold text-muted">{l.label}</div>
             </div>
           ))}
-          <Button onClick={() => openCell(days[0], TIME_ROWS[0])}>+ Add slot</Button>
+          <Button onClick={openAdd}>+ Add slot</Button>
         </div>
       </div>
 
