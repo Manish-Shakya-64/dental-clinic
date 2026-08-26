@@ -4,6 +4,7 @@ import { LoginPage } from "@/features/auth/LoginPage";
 import { SignupPage } from "@/features/auth/SignupPage";
 import { ForgotPasswordPage } from "@/features/auth/ForgotPasswordPage";
 import { ResetPasswordPage } from "@/features/auth/ResetPasswordPage";
+import { WaitlistOfferPage } from "@/features/waitlist/WaitlistOfferPage";
 import { ProtectedRoute } from "@/features/auth/ProtectedRoute";
 import { DoctorLayout } from "@/features/doctor/DoctorLayout";
 import { DoctorCalendarPage } from "@/features/doctor/calendar/DoctorCalendarPage";
@@ -64,6 +65,8 @@ function App() {
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
+        {/* Public: reached from the offer email, where the patient usually isn't signed in. */}
+        <Route path="/waitlist-offer" element={<WaitlistOfferPage />} />
 
         <Route element={<ProtectedRoute allow={["DOCTOR"]} />}>
           <Route path="/doctor" element={<DoctorLayout />}>
