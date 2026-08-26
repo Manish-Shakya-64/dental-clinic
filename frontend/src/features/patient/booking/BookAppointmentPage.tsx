@@ -9,6 +9,7 @@ import { showToast } from "@/features/toast/toastSlice";
 import { getApiErrorMessage } from "@/api/apiSlice";
 import { cn } from "@/lib/cn";
 import { addDays, endOfDay, formatDate, formatTime, startOfDay } from "@/lib/dateTime";
+import { bookableSlots } from "@/lib/bookableSlots";
 import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { FadeIn } from "@/components/ui/FadeIn";
@@ -42,7 +43,9 @@ export function BookAppointmentPage() {
     },
     { skip: step !== 2 },
   );
-  const sortedSlots = useMemo(() => [...(slots ?? [])].sort((a, b) => a.start_time.localeCompare(b.start_time)), [slots]);
+  // Today is in the picker, so without this a morning slot would still be offered in the
+  // afternoon and fail on submit.
+  const sortedSlots = useMemo(() => bookableSlots(slots), [slots]);
 
   const treatment = treatments?.find((t) => t._id === treatmentId);
   const selectedDoctor = doctors?.find((d) => d._id === practitionerId);

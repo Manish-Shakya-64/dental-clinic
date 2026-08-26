@@ -82,9 +82,19 @@ export const TESTIMONIALS = [
   { quote: "Gentle, professional, and genuinely caring. Highly recommend.", name: "Priya S." },
 ];
 
+export type SocialPlatform = "facebook" | "instagram" | "x";
+
 export const CLINIC = {
   name: "Bright Smile Dental",
   address: "22 Collins Street, Melbourne VIC 3000",
   hours: "Mon–Fri 8am–6pm, Sat 9am–2pm",
   phone: "(03) 9555 0182",
+  /** `platform` selects the glyph in the footer's SOCIAL_ICONS map — adding one here without a
+   *  matching icon is a compile error. Swap these hrefs for the clinic's real profiles; they're
+   *  placeholders, not live accounts. */
+  socials: [
+    { platform: "facebook", label: "Facebook", href: "https://facebook.com/brightsmiledental" },
+    { platform: "instagram", label: "Instagram", href: "https://instagram.com/brightsmiledental" },
+    { platform: "x", label: "X", href: "https://x.com/brightsmiledent" },
+  ] as { platform: SocialPlatform; label: string; href: string }[],
 };

@@ -8,6 +8,7 @@ import { Field, Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Toggle } from "@/components/ui/Toggle";
 import { toDatetimeLocal, fromDatetimeLocal } from "@/lib/datetimeLocal";
+import { nowISOMinute } from "@/lib/bookableSlots";
 import { staffRowName } from "@/lib/personName";
 import type { Room, StaffRow } from "@/types/api";
 
@@ -109,10 +110,10 @@ export function AddSlotModal({ open, onClose, doctors, rooms, defaultDoctorId, d
         * of shrinking to its share of the row. */}
       <div className="mb-3 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
         <Field label="Start" className="min-w-0" error={rangeError}>
-          <Input type="datetime-local" invalid={!!rangeError} value={start} onChange={(e) => setStart(e.target.value)} />
+          <Input type="datetime-local" min={nowISOMinute()} invalid={!!rangeError} value={start} onChange={(e) => setStart(e.target.value)} />
         </Field>
         <Field label="End" className="min-w-0">
-          <Input type="datetime-local" invalid={!!rangeError} value={end} onChange={(e) => setEnd(e.target.value)} />
+          <Input type="datetime-local" min={start || nowISOMinute()} invalid={!!rangeError} value={end} onChange={(e) => setEnd(e.target.value)} />
         </Field>
       </div>
 

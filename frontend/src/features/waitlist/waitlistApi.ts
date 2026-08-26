@@ -9,6 +9,18 @@ export interface JoinWaitlistInput {
   preferredWindowEnd?: string;
 }
 
+/** What the public accept page needs to render before the patient commits. */
+export interface WaitlistOfferView {
+  status: "PENDING" | "ACCEPTED" | "DECLINED" | "EXPIRED" | "SUPERSEDED";
+  expiresAt: string;
+  treatmentLabel: string;
+  doctorName: string;
+  roomName: string;
+  startTime: string;
+  patientName: string;
+  claimable: boolean;
+}
+
 export const waitlistApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     listWaitlist: builder.query<Waitlist[], void>({
@@ -34,6 +46,28 @@ export const waitlistApi = apiSlice.injectEndpoints({
         { type: "Slot", id: "LIST" },
       ],
     }),
+    /** Reception's "Send offer" — emails an accept link instead of booking outright. */
+    sendWaitlistOffer: builder.mutation<{ sent: number }, { id: string; slotId: string }>({
+      query: ({ id, slotId }) => ({ url: `/waitlist/${id}/send-offer`, method: "POST", body: { slotId } }),
+      transformResponse: (response: ApiEnvelope<{ sent: number }>) => response.data,
+      invalidatesTags: [{ type: "Waitlist", id: "LIST" }],
+    }),
+    /** Token-authenticated and public — the patient clicking through from email isn't signed in. */
+    getWaitlistOffer: builder.query<WaitlistOfferView, string>({
+      query: (token) => `/waitlist/offers/${token}`,
+      transformResponse: (response: ApiEnvelope<WaitlistOfferView>) => response.data,
+      providesTags: (_r, _e, token) => [{ type: "Waitlist", id: `offer-${token}` }],
+    }),
+    acceptWaitlistOffer: builder.mutation<Appointment, string>({
+      query: (token) => ({ url: `/waitlist/offers/${token}/accept`, method: "POST" }),
+      transformResponse: (response: ApiEnvelope<Appointment>) => response.data,
+      invalidatesTags: (_r, _e, token) => [{ type: "Waitlist", id: `offer-${token}` }],
+    }),
+    declineWaitlistOffer: builder.mutation<{ message: string }, string>({
+      query: (token) => ({ url: `/waitlist/offers/${token}/decline`, method: "POST" }),
+      transformResponse: (response: ApiEnvelope<{ message: string }>) => response.data,
+      invalidatesTags: (_r, _e, token) => [{ type: "Waitlist", id: `offer-${token}` }],
+    }),
     removeFromWaitlist: builder.mutation<void, string>({
       query: (id) => ({ url: `/waitlist/${id}`, method: "DELETE" }),
       invalidatesTags: [{ type: "Waitlist", id: "LIST" }],
@@ -41,4 +75,13 @@ export const waitlistApi = apiSlice.injectEndpoints({
   }),
 });
 
-export const { useListWaitlistQuery, useJoinWaitlistMutation, useOfferSlotMutation, useRemoveFromWaitlistMutation } = waitlistApi;
+export const {
+  useListWaitlistQuery,
+  useJoinWaitlistMutation,
+  useOfferSlotMutation,
+  useSendWaitlistOfferMutation,
+  useGetWaitlistOfferQuery,
+  useAcceptWaitlistOfferMutation,
+  useDeclineWaitlistOfferMutation,
+  useRemoveFromWaitlistMutation,
+} = waitlistApi;

@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
 import { useLazyListPatientsQuery, useCreatePatientMutation } from "@/features/patients/patientsApi";
 import { useListTreatmentsQuery } from "@/features/treatments/treatmentsApi";
-import { useListRoomsQuery } from "@/features/rooms/roomsApi";
+import { useListSlotsQuery } from "@/features/slots/slotsApi";
 import { useCreateAppointmentMutation } from "@/features/appointments/appointmentsApi";
 import { useAppDispatch } from "@/app/hooks";
 import { showToast } from "@/features/toast/toastSlice";
 import { getApiErrorMessage } from "@/api/apiSlice";
 import { cn } from "@/lib/cn";
-import { toDatetimeLocal, fromDatetimeLocal } from "@/lib/datetimeLocal";
+import { formatTime } from "@/lib/dateTime";
+import { bookableSlots, todayISODate } from "@/lib/bookableSlots";
+import { AddToWaitlistModal } from "@/features/reception/waitlist/AddToWaitlistModal";
 import { Modal } from "@/components/ui/Modal";
 import { Field, Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
@@ -53,12 +55,23 @@ export function BookingModal({ open, onClose, doctors, defaultDate }: Props) {
   }
 
   const { data: treatments } = useListTreatmentsQuery();
-  const { data: rooms } = useListRoomsQuery();
 
   const [treatmentId, setTreatmentId] = useState("");
   const [practitionerId, setPractitionerId] = useState("");
-  const [roomId, setRoomId] = useState("");
-  const [startTime, setStartTime] = useState("");
+  const [date, setDate] = useState("");
+  const [slotId, setSlotId] = useState("");
+  const [waitlisting, setWaitlisting] = useState(false);
+
+  // Reception picks from slots the admin actually created, exactly like patients do. A free-text
+  // time let staff book outside the dentist's hours, on days they don't work, or overlapping an
+  // existing appointment — the API rejects all of those now, so offering the choice was misleading.
+  const { data: slots, isFetching: loadingSlots } = useListSlotsQuery(
+    { practitioner: practitionerId, status: "OPEN" },
+    { skip: !open || !practitionerId },
+  );
+
+  const daySlots = bookableSlots(slots).filter((s) => s.start_time.slice(0, 10) === date);
+  const selectedSlot = daySlots.find((s) => s._id === slotId) ?? null;
 
   const [createPatient, { isLoading: creatingPatient }] = useCreatePatientMutation();
   const [createAppointment, { isLoading: booking }] = useCreateAppointmentMutation();
@@ -73,10 +86,12 @@ export function BookingModal({ open, onClose, doctors, defaultDate }: Props) {
     setNewPatientErrors({});
     setTreatmentId((prev) => prev || treatments?.[0]?._id || "");
     setPractitionerId(doctors[0]?.practitionerId ?? "");
-    setRoomId((prev) => prev || rooms?.[0]?._id || "");
-    const start = new Date(defaultDate);
-    if (start.getHours() === 0) start.setHours(9, 0, 0, 0);
-    setStartTime(toDatetimeLocal(start));
+    setSlotId("");
+    setWaitlisting(false);
+    const d = new Date(defaultDate);
+    setDate(
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`,
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, defaultDate]);
 
@@ -120,12 +135,16 @@ export function BookingModal({ open, onClose, doctors, defaultDate }: Props) {
       }
       if (!patientId) return;
 
+      if (!selectedSlot) return;
       await createAppointment({
         patientId,
         practitionerId,
-        roomId,
+        // The chosen slot decides the room and the exact time, so neither can drift out of step
+        // with what the dentist's calendar actually has open.
+        roomId: selectedSlot.room._id,
         treatmentId,
-        startTime: fromDatetimeLocal(startTime).toISOString(),
+        startTime: selectedSlot.start_time,
+        slotId: selectedSlot._id,
       }).unwrap();
 
       dispatch(showToast("Appointment booked", "success"));
@@ -136,7 +155,7 @@ export function BookingModal({ open, onClose, doctors, defaultDate }: Props) {
   }
 
   const patientReady = addingNewPatient ? true : !!selectedPatient;
-  const canSave = patientReady && practitionerId && roomId && treatmentId && startTime;
+  const canSave = patientReady && !!practitionerId && !!treatmentId && !!selectedSlot;
 
   return (
     <Modal open={open} onClose={onClose} maxWidth={480}>
@@ -263,22 +282,53 @@ export function BookingModal({ open, onClose, doctors, defaultDate }: Props) {
             ))}
           </select>
         </Field>
-        <Field label="Room">
-          <select
-            value={roomId}
-            onChange={(e) => setRoomId(e.target.value)}
-            className="w-full rounded-xl border border-border bg-surface px-3.5 py-2.5 text-sm text-ink outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-          >
-            {rooms?.map((r) => (
-              <option key={r._id} value={r._id}>
-                {r.name}
-              </option>
-            ))}
-          </select>
+        <Field label="Date">
+          <Input type="date" min={todayISODate()} value={date} onChange={(e) => { setDate(e.target.value); setSlotId(""); }} />
         </Field>
-        <Field label="Date & time" className="col-span-2">
-          <Input type="datetime-local" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
-        </Field>
+
+        <div className="col-span-2">
+          <div className="mb-1.5 text-xs font-bold text-ink-soft">Available times</div>
+          {!practitionerId ? (
+            <div className="rounded-xl bg-surface-alt px-4 py-5 text-center text-[13px] text-faint">Choose a dentist first.</div>
+          ) : loadingSlots ? (
+            <div className="rounded-xl bg-surface-alt px-4 py-5 text-center text-[13px] text-faint">Loading…</div>
+          ) : daySlots.length === 0 ? (
+            /* The whole point of the change: instead of letting staff invent a time that the
+             * calendar has no room for, say so plainly and offer the waitlist. */
+            <div className="rounded-xl bg-amber-tint px-4 py-4 text-center">
+              <div className="text-[13px] font-semibold text-amber-ink">No open times for this dentist on that date.</div>
+              <div className="mt-1 text-[12px] text-amber-ink/80">
+                Try another date or dentist, or put the patient on the waitlist and we&apos;ll email them when
+                something frees up.
+              </div>
+              <Button variant="outline" className="mt-3" onClick={() => setWaitlisting(true)} disabled={!patientReady || addingNewPatient}>
+                Add to waitlist instead
+              </Button>
+              {addingNewPatient && (
+                <div className="mt-2 text-[11.5px] text-amber-ink/80">Save the new patient first to use the waitlist.</div>
+              )}
+            </div>
+          ) : (
+            <div className="grid max-h-40 grid-cols-3 gap-2 overflow-y-auto">
+              {daySlots.map((slot) => (
+                <button
+                  key={slot._id}
+                  type="button"
+                  onClick={() => setSlotId(slot._id)}
+                  className={cn(
+                    "rounded-xl border px-2 py-2.5 text-center text-[13px] font-bold transition-colors",
+                    slotId === slot._id ? "border-primary bg-primary text-white" : "border-border bg-surface text-ink-soft hover:bg-surface-alt",
+                  )}
+                >
+                  {formatTime(slot.start_time)}
+                </button>
+              ))}
+            </div>
+          )}
+          {selectedSlot && (
+            <div className="mt-2 text-[12px] text-faint">Room: {selectedSlot.room.name}</div>
+          )}
+        </div>
       </div>
 
       <div className="mt-5 flex justify-end gap-2.5">
@@ -289,6 +339,14 @@ export function BookingModal({ open, onClose, doctors, defaultDate }: Props) {
           Book appointment
         </Button>
       </div>
+
+      <AddToWaitlistModal
+        open={waitlisting}
+        onClose={() => { setWaitlisting(false); onClose(); }}
+        presetPatient={selectedPatient}
+        presetTreatmentId={treatmentId}
+        presetPractitionerId={practitionerId}
+      />
     </Modal>
   );
 }

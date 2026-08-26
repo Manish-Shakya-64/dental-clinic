@@ -9,13 +9,16 @@ import { logger } from "../utils/logger.js";
 
 const JOB_INTERVAL_MINUTES = 15;
 
-/** Reminds CONFIRMED appointments entering the REMINDER_HOURS_BEFORE window since this job last ran. */
+/** Reminds not-yet-reminded appointments entering the REMINDER_HOURS_BEFORE window since this job last ran. */
 export async function runReminderJob(): Promise<void> {
   const windowStart = new Date(Date.now() + env.REMINDER_HOURS_BEFORE * 60 * 60_000);
   const windowEnd = new Date(windowStart.getTime() + JOB_INTERVAL_MINUTES * 60_000);
 
   const dueAppointments = await Appointment.find({
-    status: "CONFIRMED",
+    // RECONFIRMED included deliberately: rescheduling moves an appointment out of CONFIRMED, so
+    // filtering on CONFIRMED alone meant anything rescheduled into the reminder window was
+    // silently skipped and the patient never heard from us.
+    status: { $in: ["CONFIRMED", "RECONFIRMED"] },
     start_time: { $gte: windowStart, $lt: windowEnd },
   });
 

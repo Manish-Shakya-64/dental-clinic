@@ -22,6 +22,12 @@ export async function joinWaitlist(input: JoinWaitlistInput): Promise<IWaitlist>
   });
 }
 
+export async function getEntry(waitlistId: string): Promise<IWaitlist> {
+  const entry = await Waitlist.findById(waitlistId);
+  if (!entry) throw new NotFoundError("Waitlist entry not found");
+  return entry;
+}
+
 export async function listWaitlist(): Promise<IWaitlist[]> {
   return Waitlist.find()
     .sort({ createdAt: 1 })

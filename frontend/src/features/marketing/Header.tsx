@@ -5,6 +5,7 @@ import { useAppSelector } from "@/app/hooks";
 import { Button } from "@/components/ui/Button";
 import { roleHomePath } from "@/lib/roleHomePath";
 import { cn } from "@/lib/cn";
+import { Logo } from "@/components/ui/Logo";
 
 const NAV_LINKS = [
   { label: "Home", to: "/" },
@@ -32,8 +33,10 @@ export function Header() {
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-marketing-bg/90 backdrop-blur-sm">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4 sm:px-8">
-        <Link to="/" className="font-heading text-lg font-extrabold text-ink sm:text-xl" onClick={() => setMenuOpen(false)}>
-          Bright Smile <span className="text-primary">Dental</span>
+        <Link to="/" onClick={() => setMenuOpen(false)}>
+          <Logo size={34} textClassName="text-lg text-ink sm:text-xl">
+            Bright Smile <span className="text-primary">Dental</span>
+          </Logo>
         </Link>
 
         <nav className="hidden items-center gap-8 md:flex">

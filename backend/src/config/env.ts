@@ -35,6 +35,16 @@ const envSchema = z.object({
 
   REMINDER_HOURS_BEFORE: z.coerce.number().default(48),
   RECALL_MONTHS_AFTER_VISIT: z.coerce.number().default(6),
+  /** How long after an appointment's end time to wait before treating a patient who was never
+   *  checked in as a no-show. Long enough that reception has had a fair chance to record a late
+   *  arrival, short enough that the slot doesn't stay blocked for days. */
+  NO_SHOW_GRACE_HOURS: z.coerce.number().default(6),
+  /** How long an emailed waitlist offer stays claimable. Capped at the slot's own start time by
+   *  the service, so an offer can never outlive the appointment it is for. */
+  WAITLIST_OFFER_TTL_HOURS: z.coerce.number().default(12),
+  /** How many of the longest-waiting matches get emailed when a slot frees up. First to accept
+   *  wins; the rest are told it went and stay on the list. */
+  WAITLIST_OFFER_MAX_RECIPIENTS: z.coerce.number().int().min(1).default(3),
   SLOT_LOCK_TTL_MINUTES: z.coerce.number().default(10),
 
   RATE_LIMIT_WINDOW_MINUTES: z.coerce.number().default(15),

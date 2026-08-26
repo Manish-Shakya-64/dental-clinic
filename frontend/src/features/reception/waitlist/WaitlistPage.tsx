@@ -10,6 +10,7 @@ import { SkeletonRows } from "@/components/ui/Skeleton";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { StaggerItem, StaggerList } from "@/components/ui/FadeIn";
 import { OfferSlotModal } from "@/features/reception/waitlist/OfferSlotModal";
+import { AddToWaitlistModal } from "@/features/reception/waitlist/AddToWaitlistModal";
 import { doctorName, fullName } from "@/lib/personName";
 import type { Waitlist } from "@/types/api";
 
@@ -28,6 +29,8 @@ export function WaitlistPage() {
   const [offering, setOffering] = useState<Waitlist | null>(null);
   const [confirmRemove, setConfirmRemove] = useState<Waitlist | null>(null);
 
+  const [adding, setAdding] = useState(false);
+
   async function handleRemove() {
     if (!confirmRemove) return;
     try {
@@ -41,7 +44,15 @@ export function WaitlistPage() {
 
   return (
     <div>
-      <div className="font-heading mb-5 text-[22px] font-bold text-ink">Waitlist</div>
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <div className="font-heading text-[22px] font-bold text-ink">Waitlist</div>
+          <div className="mt-0.5 text-[13px] text-faint">
+            Patients waiting for an earlier appointment. They&apos;re emailed automatically when a matching slot frees up.
+          </div>
+        </div>
+        <Button onClick={() => setAdding(true)}>+ Add to waitlist</Button>
+      </div>
 
       {isLoading && <SkeletonRows count={4} />}
       {isError && <div className="rounded-2xl bg-coral-alt/10 px-5 py-4 text-sm font-semibold text-coral-alt">{getApiErrorMessage(error)}</div>}
@@ -82,6 +93,8 @@ export function WaitlistPage() {
           )}
         </>
       )}
+
+      <AddToWaitlistModal open={adding} onClose={() => setAdding(false)} />
 
       <OfferSlotModal open={!!offering} onClose={() => setOffering(null)} entry={offering} />
       <ConfirmModal

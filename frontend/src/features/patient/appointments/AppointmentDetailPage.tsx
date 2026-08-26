@@ -13,9 +13,7 @@ import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { FadeIn } from "@/components/ui/FadeIn";
 import { RescheduleModal } from "@/features/patient/appointments/RescheduleModal";
 import { doctorName } from "@/lib/personName";
-import type { AppointmentStatus } from "@/types/api";
-
-const TERMINAL = new Set<AppointmentStatus>(["CANCELLED", "NO_SHOW", "COMPLETED", "BILLED", "CHECKED_OUT", "RECALL_SCHEDULED"]);
+import { isTerminal, isUpcoming } from "@/lib/appointmentState";
 
 const currency = new Intl.NumberFormat(undefined, { style: "currency", currency: "USD" });
 
@@ -25,7 +23,7 @@ export function AppointmentDetailPage() {
   const dispatch = useAppDispatch();
 
   const { data: appointment, isLoading, isError, error } = useGetAppointmentQuery(appointmentId!);
-  const { data: bill } = useGetBillForAppointmentQuery(appointmentId!, { skip: !appointment || !TERMINAL.has(appointment.status) });
+  const { data: bill } = useGetBillForAppointmentQuery(appointmentId!, { skip: !appointment || !isTerminal(appointment.status) });
   const [triggerPdf, { isFetching: printing }] = useLazyGetBillPdfQuery();
   const [cancelAppointment, { isLoading: cancelling }] = useCancelAppointmentMutation();
 
@@ -68,7 +66,7 @@ export function AppointmentDetailPage() {
     return <div className="rounded-2xl bg-coral-alt/10 px-5 py-4 text-sm font-semibold text-coral-alt">{getApiErrorMessage(error)}</div>;
   }
 
-  const isUpcoming = !TERMINAL.has(appointment.status);
+  const upcoming = isUpcoming(appointment);
   const isCancelled = appointment.status === "CANCELLED" || appointment.status === "NO_SHOW";
 
   return (
@@ -79,7 +77,7 @@ export function AppointmentDetailPage() {
 
       {/* The appointment itself on the left, what you can do about it on the right. */}
       <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
-      {isUpcoming ? (
+      {upcoming ? (
         <>
           <div className="space-y-4">
           <div className="rounded-[22px] bg-gradient-to-br from-primary to-primary-dark p-6 text-white shadow-[10px_10px_24px_rgba(61,125,191,0.28)]">

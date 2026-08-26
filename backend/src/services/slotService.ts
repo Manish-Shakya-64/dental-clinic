@@ -37,6 +37,9 @@ function assertWindowIsSane(start: Date, end: Date): void {
   if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
     throw new ValidationError("Start and end must both be valid dates");
   }
+  if (start.getTime() <= Date.now()) {
+    throw new ValidationError("That start time has already passed — slots can only be created for the future");
+  }
   const duration = end.getTime() - start.getTime();
   if (duration <= 0) {
     throw new ValidationError("The slot's end time must be after its start time");
