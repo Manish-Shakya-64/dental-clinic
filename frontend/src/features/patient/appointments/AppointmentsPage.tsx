@@ -11,8 +11,7 @@ import { Pill } from "@/components/ui/Pill";
 import { Button } from "@/components/ui/Button";
 import { SkeletonRows } from "@/components/ui/Skeleton";
 import { StaggerItem, StaggerList } from "@/components/ui/FadeIn";
-
-const TERMINAL = new Set(["CANCELLED", "NO_SHOW", "COMPLETED", "BILLED", "CHECKED_OUT", "RECALL_SCHEDULED"]);
+import { isUpcoming } from "@/lib/appointmentState";
 
 export function AppointmentsPage() {
   const navigate = useNavigate();
@@ -21,12 +20,8 @@ export function AppointmentsPage() {
 
   const filtered = useMemo(() => {
     const all = data?.data ?? [];
-    const now = Date.now();
     return all
-      .filter((a) => {
-        const isFuture = new Date(a.start_time).getTime() >= now && !TERMINAL.has(a.status);
-        return tab === "upcoming" ? isFuture : !isFuture;
-      })
+      .filter((a) => (tab === "upcoming" ? isUpcoming(a) : !isUpcoming(a)))
       .sort((a, b) => (tab === "upcoming" ? a.start_time.localeCompare(b.start_time) : b.start_time.localeCompare(a.start_time)));
   }, [data, tab]);
 

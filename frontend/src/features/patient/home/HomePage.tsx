@@ -12,6 +12,7 @@ import { Pill } from "@/components/ui/Pill";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { FadeIn, StaggerItem, StaggerList } from "@/components/ui/FadeIn";
 import { doctorName, fullName } from "@/lib/personName";
+import { isUpcoming } from "@/lib/appointmentState";
 import type { Appointment, Patient } from "@/types/api";
 
 const COMPLETED_LIKE = new Set(["COMPLETED", "BILLED", "CHECKED_OUT", "RECALL_SCHEDULED"]);
@@ -35,7 +36,7 @@ export function HomePage() {
     const now = Date.now();
 
     const upcoming = all
-      .filter((a) => new Date(a.start_time).getTime() >= now && !["CANCELLED", "NO_SHOW"].includes(a.status))
+      .filter(isUpcoming)
       .sort((a, b) => a.start_time.localeCompare(b.start_time));
 
     const past = all
