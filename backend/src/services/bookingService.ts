@@ -12,6 +12,9 @@ import { isDuplicateKeyError, duplicateKeyIsOn } from "../utils/mongoErrors.js";
 import { ConflictError, NotFoundError, ValidationError } from "../utils/apiError.js";
 import { env } from "../config/env.js";
 import { sendBookingConfirmation, sendCancellationConfirmation, sendRescheduleConfirmation } from "./reminderService.js";
+import { offerFreedSlot, FreedSlotContext } from "./waitlistOfferService.js";
+import { logger } from "../utils/logger.js";
+import { assertNoOverlap, assertNotInThePast, assertWithinWorkingHours } from "./bookingGuards.js";
 
 export interface CreateBookingInput {
   patientId: string;
@@ -44,6 +47,21 @@ export async function createBooking(input: CreateBookingInput): Promise<IAppoint
   }
 
   const endTime = new Date(input.startTime.getTime() + treatment.default_duration_mins * 60_000);
+
+  assertNotInThePast(input.startTime);
+  // Working hours are only enforced for a free-chosen time. A Slot is an explicit scheduling
+  // decision by an admin, so booking one must never be refused for falling outside the roster —
+  // that would make a slot the patient can see and click un-bookable.
+  if (!input.slotId) {
+    assertWithinWorkingHours(practitioner, input.startTime, endTime);
+  }
+  // Overlap and past-date apply to every path: those are correctness, not roster policy.
+  await assertNoOverlap({
+    practitionerId: input.practitionerId,
+    roomId: input.roomId,
+    startTime: input.startTime,
+    endTime,
+  });
 
   let appointment: IAppointment | undefined;
   const MAX_CODE_COLLISION_RETRIES = 3;
@@ -112,8 +130,28 @@ export async function rescheduleAppointment(id: string, input: RescheduleInput):
     }
   }
 
+  const nextEndTime = new Date(input.startTime.getTime() + treatment.default_duration_mins * 60_000);
+  const nextPractitionerId = input.practitionerId ?? appointment.practitioner;
+  const nextRoomId = input.roomId ?? appointment.room;
+
+  assertNotInThePast(input.startTime);
+  if (!input.slotId) {
+    const nextPractitioner = await Practitioner.findById(nextPractitionerId);
+    if (!nextPractitioner) throw new NotFoundError("Practitioner not found");
+    assertWithinWorkingHours(nextPractitioner, input.startTime, nextEndTime);
+  }
+  await assertNoOverlap({
+    practitionerId: nextPractitionerId,
+    roomId: nextRoomId,
+    startTime: input.startTime,
+    endTime: nextEndTime,
+    excludeAppointmentId: appointment._id,
+  });
+
   const previousSlotId = appointment.slot;
   const previousStartTime = appointment.start_time;
+  const previousEndTime = appointment.end_time;
+  const previousPractitionerId = appointment.practitioner;
 
   appointment.start_time = input.startTime;
   appointment.end_time = new Date(input.startTime.getTime() + treatment.default_duration_mins * 60_000);
@@ -137,6 +175,15 @@ export async function rescheduleAppointment(id: string, input: RescheduleInput):
   }
   if (previousSlotId && (!newSlot || !previousSlotId.equals(newSlot._id))) {
     await Slot.findByIdAndUpdate(previousSlotId, { status: "OPEN" });
+    // A rescheduled appointment frees its old time exactly like a cancellation does, so the
+    // waitlist should hear about it too.
+    void offerFreedSlotSafely({
+      slotId: previousSlotId,
+      treatmentId: appointment.reason,
+      practitionerId: previousPractitionerId,
+      startTime: previousStartTime,
+      endTime: previousEndTime,
+    });
   }
 
   const [patient, practitioner, room] = await Promise.all([
@@ -154,6 +201,15 @@ export async function rescheduleAppointment(id: string, input: RescheduleInput):
 export interface CancelResult {
   appointment: IAppointment;
   waitlistMatches: IWaitlist[];
+}
+
+/** Offering a freed slot is a best-effort side effect — it runs after the cancellation or
+ *  reschedule has already succeeded, so a failure here is logged rather than surfaced to the user
+ *  whose action did work. */
+function offerFreedSlotSafely(ctx: FreedSlotContext): Promise<void> {
+  return offerFreedSlot(ctx)
+    .then(() => undefined)
+    .catch((err) => logger.error({ err, slotId: ctx.slotId.toString() }, "[bookingService] waitlist offer failed"));
 }
 
 export async function cancelAppointment(id: string): Promise<CancelResult> {
@@ -191,6 +247,18 @@ export async function cancelAppointment(id: string): Promise<CancelResult> {
     if (!entry.preferred_window_start || !entry.preferred_window_end) return true;
     return entry.preferred_window_start <= appointment.end_time && entry.preferred_window_end >= appointment.start_time;
   });
+
+  // Offer the freed time to waiting patients straight away. Deliberately not awaited into the
+  // caller's failure path: a problem emailing offers must never make the cancellation itself fail.
+  if (appointment.slot) {
+    void offerFreedSlotSafely({
+      slotId: appointment.slot,
+      treatmentId: appointment.reason,
+      practitionerId: appointment.practitioner,
+      startTime: appointment.start_time,
+      endTime: appointment.end_time,
+    });
+  }
 
   return { appointment, waitlistMatches };
 }
