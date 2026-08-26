@@ -216,6 +216,21 @@ describe("slots: window sanity rules", () => {
     expect(res.body.error.message).toMatch(/at least 5 minutes/i);
   });
 
+  it("rejects creating a slot in the past", async () => {
+    const { token } = await loginAsAdmin();
+    const { doctorA, roomA } = await seedSlotFixtures();
+    const past = new Date(Date.now() - 3 * 60 * 60_000);
+
+    const res = await createSlot(token, {
+      practitionerId: doctorA._id.toString(),
+      roomId: roomA._id.toString(),
+      startTime: past.toISOString(),
+      endTime: new Date(past.getTime() + 30 * 60_000).toISOString(),
+    }).expect(400);
+
+    expect(res.body.error.message).toMatch(/already passed/i);
+  });
+
   it("rejects a slot longer than 24 hours, which is usually a mistyped date", async () => {
     const { token } = await loginAsAdmin();
     const { doctorA, roomA } = await seedSlotFixtures();

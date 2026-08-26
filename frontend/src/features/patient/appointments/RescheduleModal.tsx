@@ -7,6 +7,7 @@ import { showToast } from "@/features/toast/toastSlice";
 import { getApiErrorMessage } from "@/api/apiSlice";
 import { cn } from "@/lib/cn";
 import { addDays, endOfDay, formatTime, startOfDay } from "@/lib/dateTime";
+import { bookableSlots } from "@/lib/bookableSlots";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -43,7 +44,7 @@ export function RescheduleModal({ open, onClose, appointment }: { open: boolean;
     },
     { skip: !open },
   );
-  const sortedSlots = useMemo(() => [...(slots ?? [])].sort((a, b) => a.start_time.localeCompare(b.start_time)), [slots]);
+  const sortedSlots = useMemo(() => bookableSlots(slots), [slots]);
 
   const currentDoctor = doctors?.find((d) => d._id === practitionerId);
 

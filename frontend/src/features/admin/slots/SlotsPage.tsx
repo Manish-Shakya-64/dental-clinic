@@ -4,7 +4,8 @@ import { useListRoomsQuery } from "@/features/rooms/roomsApi";
 import { useListSlotsQuery } from "@/features/slots/slotsApi";
 import { getApiErrorMessage } from "@/api/apiSlice";
 import { addDays, endOfDay, formatShortDay, startOfWeek } from "@/lib/dateTime";
-import { TIME_ROWS, dateAtTime, dayKey, timeKey } from "@/lib/timeGrid";
+import { timeRowsFor, dateAtTime, dayKey, timeKey } from "@/lib/timeGrid";
+import { cn } from "@/lib/cn";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -32,6 +33,10 @@ export function SlotsPage() {
 
   const [doctorId, setDoctorId] = useState<string | null>(null);
   const activeDoctorId = doctorId ?? doctors[0]?.practitionerId ?? "";
+  const activeDoctor = doctors.find((d) => d.practitionerId === activeDoctorId);
+  // The grid spans this dentist's own working day, so switching dentist reshapes it rather than
+  // showing everyone the same fixed 8-to-6 window.
+  const timeRows = useMemo(() => timeRowsFor(activeDoctor?.working_hours), [activeDoctor]);
 
   const [weekAnchor, setWeekAnchor] = useState(() => new Date());
   const weekStart = startOfWeek(weekAnchor);
@@ -54,32 +59,47 @@ export function SlotsPage() {
   const [addDefaultStart, setAddDefaultStart] = useState<Date>(new Date());
   const [editingSlot, setEditingSlot] = useState<Slot | null>(null);
 
+  /** A cell is dead once its start time has gone by — including earlier today, not just earlier
+   *  days. The API refuses to create a slot in the past, so leaving these clickable only produced
+   *  an error after the fact. */
+  function isPastCell(day: Date, hhmm: string): boolean {
+    return dateAtTime(day, hhmm).getTime() <= Date.now();
+  }
+
   function openCell(day: Date, hhmm: string) {
     const existing = slotGrid.get(`${day.toDateString()}|${hhmm}`);
     if (existing) {
       setEditingSlot(existing);
-    } else {
-      setAddDefaultStart(dateAtTime(day, hhmm));
-      setAddOpen(true);
+      return;
     }
+    if (isPastCell(day, hhmm)) return;
+    setAddDefaultStart(dateAtTime(day, hhmm));
+    setAddOpen(true);
   }
 
   /** The toolbar button must always open the *add* form — routing it through openCell meant that
    *  whenever the week's first cell happened to be taken, "+ Add slot" silently opened the edit
    *  dialog for that unrelated slot instead. Defaults to the first free cell in the visible week. */
-  function openAdd() {
+  function firstFreeFutureCell(): Date | null {
     for (const day of days) {
-      for (const time of TIME_ROWS) {
-        if (!slotGrid.has(`${day.toDateString()}|${time}`)) {
-          setAddDefaultStart(dateAtTime(day, time));
-          setAddOpen(true);
-          return;
+      for (const time of timeRows) {
+        if (!slotGrid.has(`${day.toDateString()}|${time}`) && !isPastCell(day, time)) {
+          return dateAtTime(day, time);
         }
       }
     }
-    setAddDefaultStart(dateAtTime(days[0], TIME_ROWS[0]));
+    return null;
+  }
+
+  function openAdd() {
+    const cell = firstFreeFutureCell();
+    if (!cell) return;
+    setAddDefaultStart(cell);
     setAddOpen(true);
   }
+
+  // Nothing to add into when the whole visible week has already been and gone.
+  const canAddThisWeek = firstFreeFutureCell() !== null;
 
   const loading = staffLoading || roomsLoading;
 
@@ -130,7 +150,9 @@ export function SlotsPage() {
               <div className="text-xs font-semibold text-muted">{l.label}</div>
             </div>
           ))}
-          <Button onClick={openAdd}>+ Add slot</Button>
+          <Button onClick={openAdd} disabled={!canAddThisWeek} title={canAddThisWeek ? undefined : "This week has already passed"}>
+            + Add slot
+          </Button>
         </div>
       </div>
 
@@ -145,19 +167,31 @@ export function SlotsPage() {
             </div>
           ))}
 
-          {TIME_ROWS.map((time) => (
+          {timeRows.map((time) => (
             <div key={time} className="contents">
               <div className="border-b border-border p-2 text-[11px] text-placeholder">{time}</div>
               {days.map((day) => {
                 const slot = slotGrid.get(`${day.toDateString()}|${time}`);
+                const past = isPastCell(day, time);
+                // An existing slot stays reachable even in the past so it can still be reviewed or
+                // tidied up; only creating a new one is off the table.
+                const disabled = past && !slot;
                 return (
                   <button
                     key={day.toISOString() + time}
                     onClick={() => openCell(day, time)}
-                    className="border-b border-l border-border p-1.5"
+                    disabled={disabled}
+                    title={disabled ? "This time has already passed" : undefined}
+                    // A past cell is deliberately styled identically to a live one — shading or
+                    // hatching it broke the grid's consistency. The cursor and tooltip carry the
+                    // affordance instead, and it simply doesn't respond to a click.
+                    className={cn(
+                      "border-b border-l border-border p-1.5",
+                      disabled ? "cursor-not-allowed" : "",
+                    )}
                   >
                     <div
-                      className="h-[30px] rounded-lg transition-transform hover:scale-[1.03]"
+                      className={cn("h-[30px] rounded-lg transition-transform", !disabled && "hover:scale-[1.03]")}
                       style={{ background: slot ? STATUS_COLOR[slot.status] : "transparent" }}
                     />
                   </button>
