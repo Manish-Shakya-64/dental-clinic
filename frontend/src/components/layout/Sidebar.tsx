@@ -1,6 +1,7 @@
 import { NavLink } from "react-router-dom";
 import { motion } from "framer-motion";
 import type { LucideIcon } from "lucide-react";
+import { Logo } from "@/components/ui/Logo";
 
 export interface NavItem {
   label: string;
@@ -14,7 +15,7 @@ export interface NavItem {
 export function Sidebar({ items }: { items: NavItem[] }) {
   return (
     <aside className="sticky top-0 hidden h-screen w-[220px] flex-shrink-0 flex-col gap-1 overflow-y-auto bg-surface p-4 pt-7 md:flex">
-      <div className="font-heading px-2 pb-6 text-lg font-bold text-ink">Bright Smile</div>
+      <Logo size={30} className="px-2 pb-6" textClassName="text-lg text-ink" />
       {items.map((item) => (
         <NavLink
           key={item.to}

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { Logo } from "@/components/ui/Logo";
 
 interface AuthLayoutProps {
   /** Imported asset URL for the artwork panel. */
@@ -38,8 +39,8 @@ export function AuthLayout({ image, imageAlt, headline, tagline, points, childre
         <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-ink/45 to-transparent" />
 
         <div className="relative flex h-full flex-col justify-between p-12">
-          <Link to="/" className="font-heading text-[19px] font-extrabold text-white">
-            Bright Smile
+          <Link to="/">
+            <Logo variant="white" size={34} textClassName="text-[19px] text-white" />
           </Link>
 
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }}>
@@ -69,8 +70,8 @@ export function AuthLayout({ image, imageAlt, headline, tagline, points, childre
         >
           {/* The artwork panel carries the brand on desktop; on mobile it's gone, so the wordmark
             * has to appear here instead. */}
-          <Link to="/" className="font-heading mb-8 block text-center text-[19px] font-extrabold text-ink lg:hidden">
-            Bright Smile
+          <Link to="/" className="mb-8 flex justify-center lg:hidden">
+            <Logo size={32} textClassName="text-[19px] text-ink" />
           </Link>
           {children}
         </motion.div>
