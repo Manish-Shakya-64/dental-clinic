@@ -78,7 +78,7 @@ export function TreatmentFormModal({ open, onClose, editing }: { open: boolean; 
         </Field>
       </div>
 
-      <Field label="Price" className="mb-1.5">
+      <Field label="Price (AUD)" className="mb-1.5">
         <Input type="number" min={0} step="0.01" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} placeholder="180.00" />
       </Field>
       <div className="mb-5 text-[11.5px] leading-relaxed text-placeholder">This sets the reference fee shown on bills, not a payment processor.</div>

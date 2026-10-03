@@ -9,8 +9,8 @@ import { TableAction } from "@/components/ui/TableAction";
 import { Pencil } from "lucide-react";
 import { TreatmentFormModal } from "@/features/admin/treatments/TreatmentFormModal";
 import type { Treatment } from "@/types/api";
+import { formatAUD } from "@/lib/currency";
 
-const currency = new Intl.NumberFormat(undefined, { style: "currency", currency: "USD" });
 const GRID_COLS = "grid-cols-[2.2fr_1fr_1fr_1fr_0.6fr]";
 
 export function TreatmentsPage() {
@@ -54,7 +54,7 @@ export function TreatmentsPage() {
                     <div className="font-bold text-ink">{t.label}</div>
                     <div className="text-muted">{t.default_duration_mins} min</div>
                     <div className="text-muted">{t.buffer_after_mins} min</div>
-                    <div className="font-bold text-ink">{currency.format(t.price)}</div>
+                    <div className="font-bold text-ink">{formatAUD(t.price)}</div>
                     <div className="justify-self-start">
                       <TableAction icon={Pencil} label="Edit treatment" onClick={() => openEdit(t)} />
                     </div>

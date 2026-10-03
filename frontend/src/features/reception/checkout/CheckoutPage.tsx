@@ -13,8 +13,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { FadeIn } from "@/components/ui/FadeIn";
 import { doctorName, fullName } from "@/lib/personName";
 import type { AppointmentStatus } from "@/types/api";
-
-const currency = new Intl.NumberFormat(undefined, { style: "currency", currency: "USD" });
+import { formatAUD } from "@/lib/currency";
 
 const CHECK_INABLE = new Set<AppointmentStatus>(["CONFIRMED", "REMINDED", "RECONFIRMED"]);
 // Billing can't happen until the doctor marks the visit complete — the backend enforces this too,
@@ -166,11 +165,11 @@ export function CheckoutPage() {
               <div className="mb-3 text-[11.5px] font-bold tracking-wide text-placeholder uppercase">Bill preview · #{bill.bill_number}</div>
               <div className="flex justify-between border-b border-border py-2 text-[13.5px] text-ink-soft">
                 <span>{appointment.reason.label}</span>
-                <span className="font-bold text-ink">{currency.format(bill.amount)}</span>
+                <span className="font-bold text-ink">{formatAUD(bill.amount)}</span>
               </div>
               <div className="flex justify-between pt-3 text-[14.5px] font-bold text-ink">
                 <span>Total</span>
-                <span>{currency.format(bill.amount)}</span>
+                <span>{formatAUD(bill.amount)}</span>
               </div>
 
               <div className="mt-5 flex gap-2.5">

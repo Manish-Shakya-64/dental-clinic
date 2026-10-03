@@ -14,8 +14,7 @@ import { FadeIn } from "@/components/ui/FadeIn";
 import { RescheduleModal } from "@/features/patient/appointments/RescheduleModal";
 import { doctorName } from "@/lib/personName";
 import { isTerminal, isUpcoming } from "@/lib/appointmentState";
-
-const currency = new Intl.NumberFormat(undefined, { style: "currency", currency: "USD" });
+import { formatAUD } from "@/lib/currency";
 
 export function AppointmentDetailPage() {
   const { appointmentId } = useParams<{ appointmentId: string }>();
@@ -145,7 +144,7 @@ export function AppointmentDetailPage() {
               <div className="mb-2.5 text-[11.5px] font-bold tracking-wide text-placeholder uppercase">Bill · #{bill.bill_number}</div>
               <div className="flex items-center justify-between text-[14.5px] font-bold text-ink">
                 <span>Total</span>
-                <span>{currency.format(bill.amount)}</span>
+                <span>{formatAUD(bill.amount)}</span>
               </div>
               <Button variant="outline" fullWidth className="mt-4" onClick={handlePrint} loading={printing}>
                 View bill
