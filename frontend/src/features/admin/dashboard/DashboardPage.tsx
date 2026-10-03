@@ -5,8 +5,7 @@ import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { FadeIn, StaggerItem, StaggerList } from "@/components/ui/FadeIn";
 import { BookingsChart } from "@/features/admin/dashboard/BookingsChart";
-
-const currency = new Intl.NumberFormat(undefined, { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+import { formatAUDWhole } from "@/lib/currency";
 
 function StatTile({ label, value }: { label: string; value: string }) {
   return (
@@ -50,7 +49,7 @@ export function DashboardPage() {
         <StatTile label="Cancellations" value={String(data.cancellations)} />
         <StatTile label="No-shows" value={String(data.noShows)} />
         <StatTile label="Utilization" value={`${Math.round(data.slotUtilization * 100)}%`} />
-        <StatTile label="Revenue" value={currency.format(data.revenue)} />
+        <StatTile label="Revenue" value={formatAUDWhole(data.revenue)} />
       </div>
 
       <Card>

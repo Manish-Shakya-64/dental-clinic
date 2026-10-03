@@ -78,7 +78,7 @@ export async function renderBillPdf(bill: IBill, treatment: ITreatment, patient:
     doc.moveDown();
     doc.text(`Patient: ${formatFullName(patient)}`);
     doc.text(`Treatment: ${treatment.label}`);
-    doc.text(`Amount: $${bill.amount.toFixed(2)}`);
+    doc.text(`Amount: A$${bill.amount.toFixed(2)} (AUD)`);
     doc.moveDown();
     doc
       .fontSize(10)
